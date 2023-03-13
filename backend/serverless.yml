@@ -12,87 +12,15 @@ custom:
   stage: ${opt:stage, 'dev'}
   userPoolName: ${self:service}-${self:custom.stage}-userPool
   userPoolClientName: ${self:service}-${self:custom.stage}-poolClient
-  # Add your email sender
-  emailFrom: EMAIL_SENDER
-  loginUrl: http://localhost:5173/sign-in
-  tokenSecret: secret
-
-
-plugins:
-  modules:
-  - serverless-iam-roles-per-function
 
 functions:
-  create-auth-challenge:
-    handler: build/create-auth-challenge/index.handler
-    events:
-      - cognitoUserPool:
-          pool: ${self:custom.userPoolName}
-          trigger: CreateAuthChallenge
-          existing: true
-  
-  define-auth-challenge:
-    handler: build/define-auth-challenge/index.handler
-    events:
-      - cognitoUserPool:
-          pool: ${self:custom.userPoolName}
-          trigger: DefineAuthChallenge
-          existing: true
-  
   pre-sign-up:
-    handler: build/pre-sign-up/index.handler
+    handler: build/index.handler
     events:
       - cognitoUserPool:
           pool: ${self:custom.userPoolName}
           trigger: PreSignUp
           existing: true
-
-  post-authentication:
-    handler: build/post-authentication/index.handler
-    events:
-      - cognitoUserPool:
-          pool: ${self:custom.userPoolName}
-          trigger: PostAuthentication
-          existing: true
-    iamRoleStatementsName: ${self:service}-post-authentication
-    iamRoleStatements:
-      - Effect: "Allow"
-        Action:
-          - cognito-idp:AdminUpdateUserAttributes
-        Resource: !Sub '${UserPool.Arn}'
-
-  verify-auth-challenge:
-    handler: build/verify-auth-challenge/index.handler
-    events:
-      - cognitoUserPool:
-          pool: ${self:custom.userPoolName}
-          trigger: VerifyAuthChallengeResponse
-          existing: true
-    environment:
-      TOKEN_SECRET: ${self:custom.tokenSecret}
-
-  login:
-    handler: build/login/index.handler
-    events:
-      - http:
-          path: /login
-          method: post
-          cors: true
-    environment:
-      SES_FROM_ADDRESS: ${self:custom.emailFrom}
-      SIGN_IN_URL: ${self:custom.loginUrl}
-      TOKEN_SECRET: ${self:custom.tokenSecret}
-      USER_POOL_ID: !Ref UserPool
-    iamRoleStatementsName: ${self:service}-login
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - ses:SendEmail
-        Resource: "*"
-      - Effect: "Allow"
-        Action:
-          - cognito-idp:AdminUpdateUserAttributes
-        Resource: !Sub '${UserPool.Arn}'
 
 resources:
   Resources:
@@ -110,9 +38,6 @@ resources:
             AttributeDataType: String
             Mutable: true
             Required: true
-          - Name: authChallenge
-            AttributeDataType: String
-            Mutable: true
         Policies:
           PasswordPolicy:
             MinimumLength: 6
@@ -128,7 +53,10 @@ resources:
         UserPoolId:
           Ref: UserPool
         ExplicitAuthFlows:
-          - CUSTOM_AUTH_FLOW_ONLY
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_CUSTOM_AUTH
+          - ALLOW_USER_SRP_AUTH
 
   Outputs:
     UserPoolId:

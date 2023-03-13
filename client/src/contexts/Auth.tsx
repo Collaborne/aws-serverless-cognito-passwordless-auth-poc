@@ -9,13 +9,10 @@ import {
 	useState,
 } from 'react';
 
-const { VITE_LOGIN_API_ENDPOINT } = import.meta.env;
-
 interface AuthContextParams {
 	isLoggedIn: boolean;
-	signIn: (email: string) => Promise<string>;
-	signUp: (email: string) => Promise<string>;
-	answerCustomChallenge: (email: string, token: string) => Promise<void>;
+	signIn: (email: string) => Promise<void>;
+	signUp: (email: string) => Promise<void>;
 	signOut: typeof Auth.signOut;
 	getUserSession: () => unknown;
 }
@@ -26,10 +23,9 @@ interface AuthProviderProps {
 
 const AuthContext = createContext<AuthContextParams>({
 	isLoggedIn: false,
-	signIn: () => Promise.resolve(''),
-	answerCustomChallenge: () => Promise.resolve(),
+	signIn: () => Promise.resolve(),
 	signOut: () => Promise.resolve(),
-	signUp: () => Promise.resolve(''),
+	signUp: () => Promise.resolve(),
 	getUserSession: () => null,
 });
 
@@ -53,40 +49,24 @@ const AuthProvider = (props: AuthProviderProps) => {
 		void isAuthenticated();
 	}, [isAuthenticated]);
 
-	const signIn = useCallback(async (email: string): Promise<string> => {
-		const response = await fetch(VITE_LOGIN_API_ENDPOINT, {
-			method: 'POST',
-			body: JSON.stringify({ email }),
-		});
+	const signIn = useCallback(
+		async (email: string) => {
+			await Auth.signIn(email, email);
 
-		const responseData = await response.json();
-
-		if (!response.ok) {
-			throw new Error(responseData.errorDetail);
-		}
-
-		return responseData.message;
-	}, []);
+			await isAuthenticated();
+		},
+		[isAuthenticated],
+	);
 
 	const signUp = useCallback(
 		async (email: string) => {
 			await Auth.signUp({
 				username: email,
-				password: `password${Math.random().toString().slice(0, 8)}`,
+				password: email,
 			});
-
-			return signIn(email);
+			await signIn(email);
 		},
 		[signIn],
-	);
-
-	const answerCustomChallenge = useCallback(
-		async (email: string, token: string) => {
-			const cognitoUser = await Auth.signIn(email);
-			await Auth.sendCustomChallengeAnswer(cognitoUser, token);
-			await isAuthenticated();
-		},
-		[isAuthenticated],
 	);
 
 	const signOut = useCallback(async () => {
@@ -101,7 +81,6 @@ const AuthProvider = (props: AuthProviderProps) => {
 				isLoggedIn,
 				signIn,
 				signUp,
-				answerCustomChallenge,
 				signOut,
 				getUserSession,
 			}}
