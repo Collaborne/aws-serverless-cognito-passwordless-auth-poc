@@ -1,0 +1,68 @@
+service: cognito-passwordless-auth-poc
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-1
+  profile: serverlessUser
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  userPoolName: ${self:service}-${self:custom.stage}-userPool
+  userPoolClientName: ${self:service}-${self:custom.stage}-poolClient
+
+functions:
+  pre-sign-up:
+    handler: build/index.handler
+    events:
+      - cognitoUserPool:
+          pool: ${self:custom.userPoolName}
+          trigger: PreSignUp
+          existing: true
+
+resources:
+  Resources:
+    UserPool:
+      Type: "AWS::Cognito::UserPool"
+      Properties:
+        MfaConfiguration: OFF
+        UserPoolName: ${self:custom.userPoolName}
+        AutoVerifiedAttributes:
+          - email
+        UsernameAttributes:
+          - email
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Mutable: true
+            Required: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+            RequireLowercase: False
+            RequireNumbers: False
+            RequireSymbols: False
+            RequireUppercase: False
+
+    UserPoolClient:
+      Type: "AWS::Cognito::UserPoolClient"
+      Properties:
+        ClientName: ${self:custom.userPoolClientName}
+        UserPoolId:
+          Ref: UserPool
+        ExplicitAuthFlows:
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_CUSTOM_AUTH
+          - ALLOW_USER_SRP_AUTH
+
+  Outputs:
+    UserPoolId:
+      Description: ID of the User Pool
+      Value: !Ref UserPool
+
+    UserPoolClientId:
+      Description: ID of the User Pool Client
+      Value: !Ref UserPoolClient

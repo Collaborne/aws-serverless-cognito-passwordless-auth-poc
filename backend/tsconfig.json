@@ -1,0 +1,25 @@
+{
+  "ts-node": {
+    "files": true
+  },
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "lib": ["ESNext"],
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "sourceMap": true,
+    "noFallthroughCasesInSwitch": false,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "skipLibCheck": true,
+    "outDir": "build"
+  },
+  "exclude": ["node_modules"]
+}

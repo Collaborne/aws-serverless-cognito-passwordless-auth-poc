@@ -1,0 +1,17 @@
+{
+    "extends": "collaborne",
+    "overrides": [{
+        "files": [
+            "src/**/*.{ts,tsx}"
+        ],
+        "extends": [
+            "standard-react",
+            "plugin:prettier/recommended",
+            "collaborne"
+        ],
+        "plugins": ["react", "react-hooks", "@typescript-eslint", "prettier"],
+        "rules": {
+            "react/react-in-jsx-scope": "off"
+        }
+    }]
+}
