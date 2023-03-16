@@ -46,10 +46,17 @@ npm install
 #### 2 Set environment variables
 - Create a `.env` from the `.env.example` template
 - Set the values of `VITE_REGION`,
-`VITE_USER_POOL_ID`,
-`VITE_USER_POOL_WEB_CLIENT_ID` and `VITE_LOGIN_API_ENDPOINT` (These are the values you get from step 4 above; `VITE_LOGIN_API_ENDPOINT` is the `ServiceEndpoint`).
+`VITE_USER_POOL_ID` and
+`VITE_USER_POOL_WEB_CLIENT_ID` (These are the values you get from step 4 above).
 #### 3. Run the web app
 ```
 npm run dev
 ```
 - In a browser, open the sign up page at `http://localhost:5173/sign-up` and you can sign in from `http://localhost:5173/sign-in`
+
+
+### Issues
+The authentication process is not secured since only an email is required to register and login. The implication of this is that any email can be used to register and the knowledge of someone's email can get me access to their account (since emails are not private entities).
+
+### Suggestions
+There should be a limit of operations that can be performed by users with this type of authentication. Deleting and Editing should be restricted to users with more secure authentication methods.
